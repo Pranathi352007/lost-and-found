@@ -66,7 +66,7 @@ function App() {
       type: formData.get("type"),
       location: String(formData.get("location") || "").trim(),
       contactName: String(formData.get("contactName") || "").trim(),
-      contactEmail: String(formData.get("contactEmail") || "").trim(),
+      contactPhone: String(formData.get("contactPhone") || "").trim(),
       status: "OPEN",
     };
 
@@ -246,7 +246,7 @@ function App() {
               <label>Location <span className="required">*</span><input name="location" type="text" placeholder="e.g. College library" maxLength={200} required /></label>
               <label className="full-width">Description <span className="required">*</span><textarea name="description" placeholder="Describe the item and identifying details…" rows={4} maxLength={1000} required /></label>
               <label>Your Name <span className="required">*</span><input name="contactName" type="text" placeholder="Enter your name" maxLength={100} required /></label>
-              <label>Contact Email <span className="required">*</span><input name="contactEmail" type="email" placeholder="you@example.com" maxLength={254} required /></label>
+              <label>Phone Number <span className="required">*</span><input name="contactPhone" type="tel" placeholder="Enter your phone number" maxLength={20} pattern="[0-9+()\-\s]{7,20}" title="Enter a valid phone number" required /></label>
             </div>
             {message && <div className="message success-message" role="status">{message}</div>}
             {formError && <div className="message error-message" role="alert">{formError}</div>}
