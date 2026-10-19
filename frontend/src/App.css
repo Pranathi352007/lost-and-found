@@ -375,3 +375,218 @@ body { background: #fcfaff; color: #302447; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* Campus Events pages and coordinator portal */
+.event-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 850px;
+  margin: 0 auto;
+}
+.event-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 250px;
+  padding: 28px;
+  border: 1px solid #e8defa;
+  border-radius: 22px;
+  background: #fff;
+  text-align: left;
+  box-shadow: 0 12px 30px #53338b0c;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.event-choice-card:hover {
+  transform: translateY(-4px);
+  border-color: #cbb7fa;
+  box-shadow: 0 18px 38px #53338b18;
+}
+.event-choice-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  border-radius: 18px;
+  color: #7041c8;
+  background: #eee7ff;
+}
+.event-choice-add .event-choice-icon {
+  color: #d14d91;
+  background: #ffe5f1;
+}
+.event-choice-card h3 {
+  margin: 0 0 10px;
+  color: #302447;
+  font-family: Manrope, Inter, sans-serif;
+  font-size: 22px;
+}
+.event-choice-card p {
+  margin: 0 0 24px;
+  color: #756b86;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.event-choice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: #7041c8;
+  font-size: 13px;
+  font-weight: 800;
+}
+.event-auth-choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 28px;
+}
+.event-auth-choice .button,
+.event-account-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+  max-width: 780px;
+  margin: 0 auto 24px;
+}
+.event-form h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #4e3288;
+  font-family: Manrope, Inter, sans-serif;
+  font-size: 21px;
+}
+.event-form .submit-button { margin-top: 0; }
+.text-button {
+  align-self: center;
+  padding: 5px 8px;
+  border: 0;
+  background: transparent;
+  color: #7041c8;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.text-button:hover { text-decoration: underline; }
+.event-dashboard { max-width: 850px; margin: 0 auto; }
+.event-account-banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0 0 22px;
+  padding: 20px;
+  border: 1px solid #e8defa;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f4efff, #fff7fb);
+}
+.event-account-banner h3 {
+  margin: 0 0 5px;
+  color: #302447;
+  font-size: 18px;
+}
+.event-account-banner p {
+  margin: 0;
+  color: #756b86;
+  font-size: 13px;
+  text-transform: capitalize;
+}
+.event-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 20px 0;
+}
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a42b45;
+  border-color: #f1cbd6;
+  background: #fff;
+}
+.danger-button:hover:not(:disabled) { background: #fff0f4; }
+.event-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  text-align: left;
+}
+.campus-event-card {
+  padding: 23px;
+  border: 1px solid #ebe2f8;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 25px #53338b0b;
+}
+.campus-event-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.event-club-pill {
+  max-width: 65%;
+  padding: 6px 10px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #f0e9ff;
+  color: #7041c8;
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.campus-event-card h3 {
+  margin: 0 0 10px;
+  color: #302447;
+  font-family: Manrope, Inter, sans-serif;
+  font-size: 20px;
+}
+.campus-event-card > p {
+  color: #756b86;
+  font-size: 13px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.event-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.event-meta svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #8b5cf6;
+}
+.event-registration-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: #7041c8;
+  font-size: 13px;
+  font-weight: 800;
+}
+.event-registration-link:hover { text-decoration: underline; }
+.event-back-button { margin-top: 8px; }
+@media (max-width: 600px) {
+  .event-choice-grid { grid-template-columns: 1fr; }
+  .event-choice-card { min-height: 220px; padding: 23px; }
+  .event-form { padding: 21px; }
+  .event-account-banner { align-items: flex-start; }
+}
