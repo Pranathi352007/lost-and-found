@@ -8,7 +8,9 @@ function App() {
   const currentPath = window.location.pathname;
   const isHomePage = currentPath === "/";
   const isEventsPage = currentPath.startsWith("/events");
-  const isLostFoundPage = currentPath.startsWith("/lost-found");
+  const isLostFoundPage = currentPath === "/lost-found";
+  const isFindItemsPage = currentPath.startsWith("/find-items");
+  const isReportItemPage = currentPath.startsWith("/report-item");
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,7 @@ function App() {
         <nav className="nav-links" aria-label="Main navigation">
           <a href="/">Home</a>
           <a href="/lost-found">Lost &amp; Found</a>
-          <a href="/lost-found#report">Report Item</a>
+          <a href="/report-item">Report Item</a>
           <a href="/events">Events</a>
         </nav>
       </header>
@@ -145,7 +147,33 @@ function App() {
           </div>
         </section>}
 
-        {isLostFoundPage && <section className="items-section section" id="items">
+        {isLostFoundPage && <section className="section" id="lost-found-options">
+          <div className="section-heading">
+            <span className="eyebrow">LOST SOMETHING OR FOUND SOMETHING?</span>
+            <h2>Lost &amp; Found</h2>
+            <p>Choose what you would like to do. You can browse reported items or submit a new report.</p>
+          </div>
+          <div className="hero-buttons">
+            <a className="hero-action hero-action-primary" href="/find-items">
+              <span className="hero-action-icon" aria-hidden="true">⌕</span>
+              <span className="hero-action-copy">
+                <strong>Find a Lost Item</strong>
+                <small>Search and filter reported items</small>
+              </span>
+              <span className="hero-action-arrow" aria-hidden="true">↗</span>
+            </a>
+            <a className="hero-action hero-action-secondary" href="/report-item">
+              <span className="hero-action-icon" aria-hidden="true">＋</span>
+              <span className="hero-action-copy">
+                <strong>Report an Item</strong>
+                <small>Tell the campus what you lost or found</small>
+              </span>
+              <span className="hero-action-arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </section>}
+
+        {isFindItemsPage && <section className="items-section section" id="items">
           <div className="section-heading">
             <span className="eyebrow">THE COMMUNITY BOARD</span>
             <h2>Lost &amp; Found</h2>
@@ -182,7 +210,7 @@ function App() {
               <div className="empty-icon" aria-hidden="true">⌕</div>
               <h3>No items reported yet</h3>
               <p>Be the first to share a report and help someone in your campus community.</p>
-              <a className="button primary-button" href="/lost-found#report">Report an Item</a>
+              <a className="button primary-button" href="/report-item">Report an Item</a>
             </div>
           )}
 
@@ -232,7 +260,7 @@ function App() {
           )}
         </section>}
 
-        {isLostFoundPage && <section className="report-section section" id="report">
+        {isReportItemPage && <section className="report-section section" id="report">
           <div className="section-heading">
             <span className="eyebrow">HELP SOMEONE RECONNECT</span>
             <h2>Report an Item</h2>
