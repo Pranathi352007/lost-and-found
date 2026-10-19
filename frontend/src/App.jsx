@@ -10,6 +10,13 @@ import {
   Sparkles,
   CheckCircle,
   CircleHelp,
+  UserRound,
+  LogIn,
+  UserPlus,
+  CalendarPlus,
+  LogOut,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import "./App.css";
 
@@ -19,6 +26,8 @@ function App() {
   const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
   const isHomePage = currentPath === "/";
   const isEventsPage = currentPath === "/events";
+  const isFindEventsPage = currentPath === "/find-events";
+  const isAddEventsPage = currentPath === "/add-events";
   const isLostFoundPage = currentPath === "/lost-found";
   const isFindItemsPage = currentPath === "/find-items";
   const isReportItemPage = currentPath === "/report-item";
@@ -33,6 +42,149 @@ function App() {
   const [selectedType, setSelectedType] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [filtersApplied, setFiltersApplied] = useState(false);
+
+  const [campusEvents, setCampusEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState("");
+  const [eventMode, setEventMode] = useState("choose");
+  const [eventMessage, setEventMessage] = useState("");
+  const [eventError, setEventError] = useState("");
+  const [eventBusy, setEventBusy] = useState(false);
+  const [clubAccount, setClubAccount] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("campusClubAccount") || "null");
+    } catch {
+      return null;
+    }
+  });
+
+  async function loadEvents() {
+    setEventsLoading(true);
+    setEventsError("");
+    try {
+      const response = await fetch("http://localhost:8080/api/events");
+      if (!response.ok) throw new Error("Could not load campus events.");
+      setCampusEvents(await response.json());
+    } catch {
+      setEventsError("Unable to load events. Check that the backend is running.");
+    } finally {
+      setEventsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (isFindEventsPage) loadEvents();
+  }, [isFindEventsPage]);
+
+  async function handleClubSignup(event) {
+    event.preventDefault();
+    setEventError("");
+    setEventMessage("");
+    setEventBusy(true);
+    const form = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+    try {
+      const response = await fetch("http://localhost:8080/api/club-accounts/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Could not create account.");
+      localStorage.setItem("campusClubAccount", JSON.stringify(result));
+      setClubAccount(result);
+      setEventMode("dashboard");
+      setEventMessage("Account created successfully. You can now add campus events.");
+    } catch (error) {
+      setEventError(error.message || "Sign-up failed. Please try again.");
+    } finally {
+      setEventBusy(false);
+    }
+  }
+
+  async function handleClubLogin(event) {
+    event.preventDefault();
+    setEventError("");
+    setEventMessage("");
+    setEventBusy(true);
+    const form = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+    try {
+      const response = await fetch("http://localhost:8080/api/club-accounts/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Login failed.");
+      localStorage.setItem("campusClubAccount", JSON.stringify(result));
+      setClubAccount(result);
+      setEventMode("dashboard");
+      setEventMessage("Welcome back. You can now add campus events.");
+    } catch (error) {
+      setEventError(error.message || "Login failed. Please try again.");
+    } finally {
+      setEventBusy(false);
+    }
+  }
+
+  async function handleCreateEvent(event) {
+    event.preventDefault();
+    setEventError("");
+    setEventMessage("");
+    setEventBusy(true);
+    const form = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+    try {
+      const response = await fetch("http://localhost:8080/api/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + clubAccount.token,
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Could not add event.");
+      setEventMessage("Event added successfully!");
+      event.currentTarget.reset();
+    } catch (error) {
+      setEventError(error.message || "Could not add event. Please try again.");
+    } finally {
+      setEventBusy(false);
+    }
+  }
+
+  function handleClubLogout() {
+    localStorage.removeItem("campusClubAccount");
+    setClubAccount(null);
+    setEventMode("choose");
+    setEventMessage("You have logged out.");
+    setEventError("");
+  }
+
+  async function handleDeleteClubAccount() {
+    if (!window.confirm("Delete your coordinator account? This frees your club role for another person. This action cannot be undone.")) return;
+    setEventError("");
+    setEventMessage("");
+    setEventBusy(true);
+    try {
+      const response = await fetch("http://localhost:8080/api/club-accounts/me", {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + clubAccount.token },
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Could not delete account.");
+      localStorage.removeItem("campusClubAccount");
+      setClubAccount(null);
+      setEventMode("choose");
+      setEventMessage(result.message || "Account deleted.");
+    } catch (error) {
+      setEventError(error.message || "Could not delete account.");
+    } finally {
+      setEventBusy(false);
+    }
+  }
 
   async function loadItems() {
     try {
@@ -298,13 +450,131 @@ function App() {
           <div className="section-heading">
             <span className="eyebrow">MEET, LEARN &amp; CELEBRATE</span>
             <h2>Campus Events</h2>
-            <p>Stay curious, meet your community, and keep an eye on upcoming campus activities.</p>
+            <p>Discover activities around campus or sign in as a club coordinator to publish an event.</p>
           </div>
-          <div className="event-placeholder">
-            <div className="event-icon" aria-hidden="true"><Sparkles size={30} /></div>
-            <h3>Your next campus memory starts here</h3>
-            <p>Event details and registration links will be shared here soon.</p>
+          <div className="event-choice-grid">
+            <a className="event-choice-card event-choice-find" href="/find-events">
+              <span className="event-choice-icon"><Search size={30} /></span>
+              <h3>Find Events</h3>
+              <p>Browse upcoming events, venues, and registration links.</p>
+              <span className="event-choice-link">Explore events <ArrowUpRight size={18} /></span>
+            </a>
+            <a className="event-choice-card event-choice-add" href="/add-events">
+              <span className="event-choice-icon"><CalendarPlus size={30} /></span>
+              <h3>Add Events</h3>
+              <p>Log in or sign up as your club's coordinator to post events.</p>
+              <span className="event-choice-link">Coordinator access <ArrowUpRight size={18} /></span>
+            </a>
           </div>
+        </section>}
+
+        {isFindEventsPage && <section className="events-section section">
+          <div className="section-heading">
+            <span className="eyebrow">CAMPUS CALENDAR</span>
+            <h2>Find Events</h2>
+            <p>Explore activities shared by campus clubs.</p>
+          </div>
+          {eventsLoading && <p className="info-message">Loading events…</p>}
+          {eventsError && <div className="message error-message">{eventsError}</div>}
+          {!eventsLoading && !eventsError && campusEvents.length === 0 && (
+            <div className="event-placeholder">
+              <div className="event-icon"><CalendarDays size={30} /></div>
+              <h3>No events have been added yet</h3>
+              <p>Check back later, or sign in as a club coordinator to publish an event.</p>
+              <a className="button primary-button" href="/add-events">Add an Event</a>
+            </div>
+          )}
+          <div className="event-list-grid">
+            {campusEvents.map((campusEvent) => (
+              <article className="campus-event-card" key={campusEvent.id}>
+                <div className="campus-event-card-top">
+                  <span className="icon-tile icon-pink"><CalendarDays size={23} /></span>
+                  <span className="event-club-pill">{campusEvent.clubName || "Campus Club"}</span>
+                </div>
+                <h3>{campusEvent.title}</h3>
+                <p>{campusEvent.description || "More details will be announced soon."}</p>
+                {campusEvent.eventDateTime && <p className="event-meta"><CalendarDays size={16} /> {new Date(campusEvent.eventDateTime).toLocaleString()}</p>}
+                {campusEvent.venue && <p className="event-meta"><MapPin size={16} /> {campusEvent.venue}</p>}
+                <p className="event-meta"><UserRound size={16} /> Posted by {campusEvent.createdBy || campusEvent.clubName}</p>
+                {campusEvent.registrationUrl && <a className="event-registration-link" href={campusEvent.registrationUrl} target="_blank" rel="noreferrer">Registration link <ExternalLink size={15} /></a>}
+              </article>
+            ))}
+          </div>
+          <a className="button outline-button event-back-button" href="/events">Back to Events</a>
+        </section>}
+
+        {isAddEventsPage && <section className="events-section section">
+          <div className="section-heading">
+            <span className="eyebrow">CLUB COORDINATOR PORTAL</span>
+            <h2>Add Campus Events</h2>
+            <p>Each club can register one Club Coordinator and one Sub Coordinator. A role becomes available again when its account is deleted.</p>
+          </div>
+          {!clubAccount && eventMode === "choose" && (
+            <div className="event-auth-choice">
+              <button className="button primary-button" type="button" onClick={() => { setEventMode("login"); setEventError(""); setEventMessage(""); }}><LogIn size={18} /> Log In</button>
+              <button className="button outline-button" type="button" onClick={() => { setEventMode("signup"); setEventError(""); setEventMessage(""); }}><UserPlus size={18} /> Sign Up</button>
+            </div>
+          )}
+          {!clubAccount && eventMode === "login" && (
+            <form className="report-form event-form" onSubmit={handleClubLogin}>
+              <h3><LogIn size={21} /> Coordinator Login</h3>
+              <label>Registration Number <span className="required">*</span><input name="registrationNumber" autoComplete="username" required /></label>
+              <label>Password <span className="required">*</span><input name="password" type="password" autoComplete="current-password" required /></label>
+              {eventError && <div className="message error-message">{eventError}</div>}
+              {eventMessage && <div className="message success-message">{eventMessage}</div>}
+              <button className="button primary-button submit-button" disabled={eventBusy}>{eventBusy ? "Logging in…" : "Log In"}</button>
+              <button className="text-button" type="button" onClick={() => { setEventMode("signup"); setEventError(""); setEventMessage(""); }}>New coordinator? Sign up</button>
+              <button className="text-button" type="button" onClick={() => { setEventMode("choose"); setEventError(""); setEventMessage(""); }}>Back</button>
+            </form>
+          )}
+          {!clubAccount && eventMode === "signup" && (
+            <form className="report-form event-form" onSubmit={handleClubSignup}>
+              <h3><UserPlus size={21} /> Club Coordinator Sign Up</h3>
+              <div className="form-grid">
+                <label>Full Name <span className="required">*</span><input name="fullName" autoComplete="name" maxLength={100} required /></label>
+                <label>Registration Number <span className="required">*</span><input name="registrationNumber" autoComplete="username" maxLength={40} required /></label>
+                <label>Email Address <span className="required">*</span><input name="email" type="email" autoComplete="email" required /></label>
+                <label>Phone Number<input name="phone" type="tel" maxLength={20} /></label>
+                <label>Department / Branch<input name="department" maxLength={100} /></label>
+                <label>Year of Study<input name="yearOfStudy" placeholder="e.g. 2nd year" maxLength={30} /></label>
+                <label>Club Name <span className="required">*</span><input name="clubName" placeholder="Enter the official club name" maxLength={100} required /></label>
+                <label>Club Role <span className="required">*</span><select name="role" defaultValue="COORDINATOR" required><option value="COORDINATOR">Club Coordinator</option><option value="SUB_COORDINATOR">Sub Coordinator</option></select></label>
+                <label className="full-width">Password <span className="required">*</span><input name="password" type="password" minLength={8} autoComplete="new-password" required /><small>Use at least 8 characters.</small></label>
+              </div>
+              {eventError && <div className="message error-message">{eventError}</div>}
+              {eventMessage && <div className="message success-message">{eventMessage}</div>}
+              <button className="button primary-button submit-button" disabled={eventBusy}>{eventBusy ? "Creating account…" : "Create Account"}</button>
+              <button className="text-button" type="button" onClick={() => { setEventMode("login"); setEventError(""); setEventMessage(""); }}>Already registered? Log in</button>
+              <button className="text-button" type="button" onClick={() => { setEventMode("choose"); setEventError(""); setEventMessage(""); }}>Back</button>
+            </form>
+          )}
+          {clubAccount && (
+            <div className="event-dashboard">
+              <div className="event-account-banner">
+                <span className="icon-tile icon-purple"><UserRound size={25} /></span>
+                <div><h3>Welcome, {clubAccount.fullName}</h3><p>{clubAccount.clubName} · {clubAccount.role === "COORDINATOR" ? "Club Coordinator" : "Sub Coordinator"}</p></div>
+              </div>
+              {eventError && <div className="message error-message">{eventError}</div>}
+              {eventMessage && <div className="message success-message">{eventMessage}</div>}
+              <form className="report-form event-form" onSubmit={handleCreateEvent}>
+                <h3><CalendarPlus size={21} /> Add a New Event</h3>
+                <label>Event Title <span className="required">*</span><input name="title" maxLength={150} required /></label>
+                <label>Description<textarea name="description" rows={4} maxLength={2000} placeholder="Tell students what the event is about." /></label>
+                <div className="form-grid">
+                  <label>Date and Time<input name="eventDateTime" type="datetime-local" /></label>
+                  <label>Venue<input name="venue" maxLength={200} placeholder="e.g. Seminar Hall" /></label>
+                  <label className="full-width">Registration URL<input name="registrationUrl" type="url" placeholder="https://forms.gle/..." /></label>
+                </div>
+                <button className="button primary-button submit-button" disabled={eventBusy}>{eventBusy ? "Publishing…" : "Publish Event"}</button>
+              </form>
+              <div className="event-account-actions">
+                <button className="button outline-button" type="button" onClick={handleClubLogout}><LogOut size={17} /> Log Out</button>
+                <button className="button danger-button" type="button" onClick={handleDeleteClubAccount} disabled={eventBusy}><Trash2 size={17} /> Delete Account</button>
+              </div>
+              <p className="privacy-note">Deleting your account permanently releases this club role for another sign-up. Events already published will remain visible.</p>
+            </div>
+          )}
+          <a className="button outline-button event-back-button" href="/events">Back to Events</a>
         </section>}
       </main>
 
