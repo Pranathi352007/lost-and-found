@@ -32,7 +32,7 @@ public class Item {
 
     private String contactName;
 
-    private String contactEmail;
+    private String contactPhone;
 
     @Column(nullable = false)
     private String status = "OPEN";
@@ -112,12 +112,12 @@ public class Item {
         this.contactName = contactName;
     }
 
-    public String getContactEmail() {
-        return contactEmail;
+    public String getContactPhone() {
+        return contactPhone;
     }
 
-    public void setContactEmail(String contactEmail) {
-        this.contactEmail = contactEmail;
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
     }
 
     public String getStatus() {
