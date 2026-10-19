@@ -130,10 +130,11 @@ function App() {
 
   async function handleCreateEvent(event) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setEventError("");
     setEventMessage("");
     setEventBusy(true);
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const payload = Object.fromEntries(form.entries());
     try {
       const response = await fetch("http://localhost:8080/api/events", {
@@ -147,7 +148,7 @@ function App() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Could not add event.");
       setEventMessage("Event added successfully!");
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setEventError(error.message || "Could not add event. Please try again.");
     } finally {
