@@ -19,6 +19,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [filtersApplied, setFiltersApplied] = useState(false);
 
   async function loadItems() {
     try {
@@ -169,7 +170,8 @@ function App() {
               <option value="Keys">Keys</option>
               <option value="Other">Other</option>
             </select>
-            <button className="button outline-button" type="button" onClick={() => { setSearchTerm(""); setSelectedType("ALL"); setSelectedCategory("ALL"); }}>Clear Filters</button>
+            <button className="button primary-button" type="button" onClick={() => setFiltersApplied(true)}>Apply Filters</button>
+            <button className="button outline-button" type="button" onClick={() => { setSearchTerm(""); setSelectedType("ALL"); setSelectedCategory("ALL"); setFiltersApplied(false); }}>Clear Filters</button>
           </div>
 
           {loading && <p className="info-message">Loading items…</p>}
@@ -184,7 +186,15 @@ function App() {
             </div>
           )}
 
-          {!loading && !fetchError && items.length > 0 && (
+          {!loading && !fetchError && items.length > 0 && !filtersApplied && (
+            <div className="empty-state">
+              <div className="empty-icon" aria-hidden="true">⌕</div>
+              <h3>Choose your filters</h3>
+              <p>Search by item name, description, or location, or select a report type or category. Click Apply Filters to view matching items.</p>
+            </div>
+          )}
+
+          {!loading && !fetchError && items.length > 0 && filtersApplied && (
             <>
               <p className="results-count">Showing {filteredItems.length} of {items.length} items</p>
               {filteredItems.length === 0 ? (
