@@ -5,12 +5,12 @@ import "./App.css";
 const API_URL = "http://localhost:8080/api/items";
 
 function App() {
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
   const isHomePage = currentPath === "/";
-  const isEventsPage = currentPath.startsWith("/events");
+  const isEventsPage = currentPath === "/events";
   const isLostFoundPage = currentPath === "/lost-found";
-  const isFindItemsPage = currentPath.startsWith("/find-items");
-  const isReportItemPage = currentPath.startsWith("/report-item");
+  const isFindItemsPage = currentPath === "/find-items";
+  const isReportItemPage = currentPath === "/report-item";
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
