@@ -5,6 +5,11 @@ import "./App.css";
 const API_URL = "http://localhost:8080/api/items";
 
 function App() {
+  const currentPath = window.location.pathname;
+  const isHomePage = currentPath === "/";
+  const isEventsPage = currentPath.startsWith("/events");
+  const isLostFoundPage = currentPath.startsWith("/lost-found");
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -90,15 +95,15 @@ function App() {
           <span>Campus Connect</span>
         </a>
         <nav className="nav-links" aria-label="Main navigation">
-          <a href="#home">Home</a>
-          <a href="#items">Browse Items</a>
-          <a href="#report">Report Item</a>
-          <a href="#events">Events</a>
+          <a href="/">Home</a>
+          <a href="/lost-found">Lost &amp; Found</a>
+          <a href="/lost-found#report">Report Item</a>
+          <a href="/events">Events</a>
         </nav>
       </header>
 
       <main>
-        <section className="hero" id="home">
+        {isHomePage && <section className="hero" id="home">
           <div className="hero-orb hero-orb-one" aria-hidden="true" />
           <div className="hero-orb hero-orb-two" aria-hidden="true" />
           <div className="hero-content">
@@ -114,7 +119,7 @@ function App() {
             </p>
 
             <div className="hero-buttons">
-              <a className="hero-action hero-action-primary" href="#items">
+              <a className="hero-action hero-action-primary" href="/lost-found">
                 <span className="hero-action-icon" aria-hidden="true">⌕</span>
                 <span className="hero-action-copy">
                   <strong>Lost &amp; Found</strong>
@@ -122,7 +127,7 @@ function App() {
                 </span>
                 <span className="hero-action-arrow" aria-hidden="true">↗</span>
               </a>
-              <a className="hero-action hero-action-secondary" href="#events">
+              <a className="hero-action hero-action-secondary" href="/events">
                 <span className="hero-action-icon" aria-hidden="true">✦</span>
                 <span className="hero-action-copy">
                   <strong>Campus Events</strong>
@@ -137,9 +142,9 @@ function App() {
               Made for a more connected campus community
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section className="items-section section" id="items">
+        {isLostFoundPage && <section className="items-section section" id="items">
           <div className="section-heading">
             <span className="eyebrow">THE COMMUNITY BOARD</span>
             <h2>Lost &amp; Found</h2>
@@ -175,7 +180,7 @@ function App() {
               <div className="empty-icon" aria-hidden="true">⌕</div>
               <h3>No items reported yet</h3>
               <p>Be the first to share a report and help someone in your campus community.</p>
-              <a className="button primary-button" href="#report">Report an Item</a>
+              <a className="button primary-button" href="/lost-found#report">Report an Item</a>
             </div>
           )}
 
@@ -215,9 +220,9 @@ function App() {
               <button className="button outline-button" type="button" onClick={loadItems}>Refresh Items</button>
             </>
           )}
-        </section>
+        </section>}
 
-        <section className="report-section section" id="report">
+        {isLostFoundPage && <section className="report-section section" id="report">
           <div className="section-heading">
             <span className="eyebrow">HELP SOMEONE RECONNECT</span>
             <h2>Report an Item</h2>
@@ -238,9 +243,9 @@ function App() {
             <button className="button primary-button submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting…" : "Submit Report"}</button>
             <p className="privacy-note">Use test contact details while developing. This version does not yet include authentication or private contact-information controls.</p>
           </form>
-        </section>
+        </section>}
 
-        <section className="events-section section" id="events">
+        {isEventsPage && <section className="events-section section" id="events">
           <div className="section-heading">
             <span className="eyebrow">MEET, LEARN &amp; CELEBRATE</span>
             <h2>Campus Events</h2>
@@ -251,7 +256,7 @@ function App() {
             <h3>Your next campus memory starts here</h3>
             <p>Event details and registration links will be shared here soon.</p>
           </div>
-        </section>
+        </section>}
       </main>
 
       <footer className="footer">
