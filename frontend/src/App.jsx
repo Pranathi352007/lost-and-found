@@ -1,5 +1,16 @@
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  Search,
+  CalendarDays,
+  PlusCircle,
+  MapPin,
+  Package,
+  ArrowUpRight,
+  Sparkles,
+  CheckCircle,
+  CircleHelp,
+} from "lucide-react";
 import "./App.css";
 
 const API_URL = "http://localhost:8080/api/items";
@@ -94,7 +105,7 @@ function App() {
     <div className="app">
       <header className="navbar">
         <a className="brand" href="/" aria-label="Lost and Found home">
-          <span className="brand-icon">L</span>
+          <span className="brand-icon"><Package size={21} fill="currentColor" /></span>
           <span>Campus Connect</span>
         </a>
         <nav className="nav-links" aria-label="Main navigation">
@@ -123,20 +134,20 @@ function App() {
 
             <div className="hero-buttons">
               <a className="hero-action hero-action-primary" href="/lost-found">
-                <span className="hero-action-icon" aria-hidden="true">⌕</span>
+                <span className="hero-action-icon" aria-hidden="true"><Search size={23} strokeWidth={2.5} /></span>
                 <span className="hero-action-copy">
                   <strong>Lost &amp; Found</strong>
                   <small>Find or report an item</small>
                 </span>
-                <span className="hero-action-arrow" aria-hidden="true">↗</span>
+                <span className="hero-action-arrow" aria-hidden="true"><ArrowUpRight size={20} /></span>
               </a>
               <a className="hero-action hero-action-secondary" href="/events">
-                <span className="hero-action-icon" aria-hidden="true">✦</span>
+                <span className="hero-action-icon" aria-hidden="true"><CalendarDays size={23} strokeWidth={2.5} /></span>
                 <span className="hero-action-copy">
                   <strong>Campus Events</strong>
                   <small>Explore what’s happening</small>
                 </span>
-                <span className="hero-action-arrow" aria-hidden="true">↗</span>
+                <span className="hero-action-arrow" aria-hidden="true"><ArrowUpRight size={20} /></span>
               </a>
             </div>
 
@@ -155,20 +166,20 @@ function App() {
           </div>
           <div className="hero-buttons">
             <a className="hero-action hero-action-primary" href="/find-items">
-              <span className="hero-action-icon" aria-hidden="true">⌕</span>
+              <span className="hero-action-icon" aria-hidden="true"><Search size={23} strokeWidth={2.5} /></span>
               <span className="hero-action-copy">
                 <strong>Find a Lost Item</strong>
                 <small>Search and filter reported items</small>
               </span>
-              <span className="hero-action-arrow" aria-hidden="true">↗</span>
+              <span className="hero-action-arrow" aria-hidden="true"><ArrowUpRight size={20} /></span>
             </a>
             <a className="hero-action hero-action-secondary" href="/report-item">
-              <span className="hero-action-icon" aria-hidden="true">＋</span>
+              <span className="hero-action-icon" aria-hidden="true"><PlusCircle size={23} strokeWidth={2.5} /></span>
               <span className="hero-action-copy">
                 <strong>Report an Item</strong>
                 <small>Tell the campus what you lost or found</small>
               </span>
-              <span className="hero-action-arrow" aria-hidden="true">↗</span>
+              <span className="hero-action-arrow" aria-hidden="true"><ArrowUpRight size={20} /></span>
             </a>
           </div>
         </section>}
@@ -207,7 +218,7 @@ function App() {
 
           {!loading && !fetchError && items.length === 0 && (
             <div className="empty-state">
-              <div className="empty-icon" aria-hidden="true">⌕</div>
+              <div className="empty-icon" aria-hidden="true"><Search size={29} strokeWidth={2.4} /></div>
               <h3>No items reported yet</h3>
               <p>Be the first to share a report and help someone in your campus community.</p>
               <a className="button primary-button" href="/report-item">Report an Item</a>
@@ -216,7 +227,7 @@ function App() {
 
           {!loading && !fetchError && items.length > 0 && !filtersApplied && (
             <div className="empty-state">
-              <div className="empty-icon" aria-hidden="true">⌕</div>
+              <div className="empty-icon" aria-hidden="true"><Search size={29} strokeWidth={2.4} /></div>
               <h3>Choose your filters</h3>
               <p>Search by item name, description, or location, or select a report type or category. Click Apply Filters to view matching items.</p>
             </div>
@@ -227,7 +238,7 @@ function App() {
               <p className="results-count">Showing {filteredItems.length} of {items.length} items</p>
               {filteredItems.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon" aria-hidden="true">⌕</div>
+                  <div className="empty-icon" aria-hidden="true"><Search size={29} strokeWidth={2.4} /></div>
                   <h3>No matching items found</h3>
                   <p>Try a different search phrase or update your filters.</p>
                 </div>
@@ -238,7 +249,7 @@ function App() {
                       {item.imageUrl ? (
                         <img className="item-image" src={item.imageUrl} alt={item.title} />
                       ) : (
-                        <div className="item-image-placeholder" aria-hidden="true">{item.type === "FOUND" ? "✓" : "?"}</div>
+                        <div className="item-image-placeholder" aria-hidden="true">{item.type === "FOUND" ? <CheckCircle size={46} /> : <CircleHelp size={46} />}</div>
                       )}
                       <div className="item-card-content">
                         <div className="item-badges">
@@ -247,7 +258,7 @@ function App() {
                         </div>
                         <h3>{item.title}</h3>
                         <p className="item-description">{item.description || "No description provided."}</p>
-                        <p className="item-detail"><strong>Location:</strong> {item.location || "Not specified"}</p>
+                        <p className="item-detail item-location"><MapPin size={15} /><strong>Location:</strong> {item.location || "Not specified"}</p>
                         <p className="item-detail"><strong>Status:</strong> {item.status || "OPEN"}</p>
                         {item.dateReported && <p className="item-date">Reported: {new Date(item.dateReported).toLocaleDateString()}</p>}
                       </div>
@@ -290,7 +301,7 @@ function App() {
             <p>Stay curious, meet your community, and keep an eye on upcoming campus activities.</p>
           </div>
           <div className="event-placeholder">
-            <div className="event-icon" aria-hidden="true">✦</div>
+            <div className="event-icon" aria-hidden="true"><Sparkles size={30} /></div>
             <h3>Your next campus memory starts here</h3>
             <p>Event details and registration links will be shared here soon.</p>
           </div>
@@ -298,7 +309,7 @@ function App() {
       </main>
 
       <footer className="footer">
-        <a className="brand footer-brand" href="/"><span className="brand-icon">L</span><span>Campus Connect</span></a>
+        <a className="brand footer-brand" href="/"><span className="brand-icon"><Package size={21} fill="currentColor" /></span><span>Campus Connect</span></a>
         <p>Small connections make campus life better.</p>
       </footer>
     </div>
