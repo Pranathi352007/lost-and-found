@@ -11,7 +11,6 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [formError, setFormError] = useState("");
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
@@ -19,19 +18,11 @@ function App() {
   async function loadItems() {
     try {
       setFetchError("");
-
       const response = await fetch(API_URL);
-
-      if (!response.ok) {
-        throw new Error("Could not load items.");
-      }
-
-      const data = await response.json();
-      setItems(data);
+      if (!response.ok) throw new Error("Could not load items.");
+      setItems(await response.json());
     } catch {
-      setFetchError(
-        "Unable to load items. Please check that the Spring Boot backend is running."
-      );
+      setFetchError("Unable to load items. Please check that the Spring Boot backend is running.");
     } finally {
       setLoading(false);
     }
@@ -43,34 +34,25 @@ function App() {
 
   const filteredItems = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-
     return items.filter((item) => {
       const matchesSearch =
         !query ||
-        [item.title, item.description, item.location]
-          .some((value) => String(value || "").toLowerCase().includes(query));
-
-      const matchesType =
-        selectedType === "ALL" || item.type === selectedType;
-
-      const matchesCategory =
-        selectedCategory === "ALL" ||
-        item.category === selectedCategory;
-
+        [item.title, item.description, item.location].some((value) =>
+          String(value || "").toLowerCase().includes(query)
+        );
+      const matchesType = selectedType === "ALL" || item.type === selectedType;
+      const matchesCategory = selectedCategory === "ALL" || item.category === selectedCategory;
       return matchesSearch && matchesType && matchesCategory;
     });
   }, [items, searchTerm, selectedType, selectedCategory]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-
     setMessage("");
     setFormError("");
     setSubmitting(true);
-
     const form = event.currentTarget;
     const formData = new FormData(form);
-
     const item = {
       title: String(formData.get("title") || "").trim(),
       description: String(formData.get("description") || "").trim(),
@@ -88,20 +70,13 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(item),
       });
-
-      if (!response.ok) {
-        throw new Error("The server could not save your report.");
-      }
-
+      if (!response.ok) throw new Error("The server could not save your report.");
       const savedItem = await response.json();
-
       setItems((previousItems) => [savedItem, ...previousItems]);
       setMessage("Your item has been reported successfully!");
       form.reset();
     } catch {
-      setFormError(
-        "Could not submit your report. Check the backend and try again."
-      );
+      setFormError("Could not submit your report. Check the backend and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -110,12 +85,11 @@ function App() {
   return (
     <div className="app">
       <header className="navbar">
-        <a className="brand" href="#home">
+        <a className="brand" href="#home" aria-label="Lost and Found home">
           <span className="brand-icon">L</span>
-          Lost &amp; Found
+          <span>Campus Connect</span>
         </a>
-
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Main navigation">
           <a href="#home">Home</a>
           <a href="#items">Browse Items</a>
           <a href="#report">Report Item</a>
@@ -125,66 +99,61 @@ function App() {
 
       <main>
         <section className="hero" id="home">
+          <div className="hero-orb hero-orb-one" aria-hidden="true" />
+          <div className="hero-orb hero-orb-two" aria-hidden="true" />
           <div className="hero-content">
-            <span className="eyebrow">YOUR CAMPUS COMMUNITY</span>
-
+            <span className="eyebrow hero-eyebrow">YOUR CAMPUS, CONNECTED</span>
             <h1>
-              Lost something?
+              Find what matters.
               <br />
-              <span>Let&apos;s find it together.</span>
+              <span>Be part of campus life.</span>
             </h1>
-
             <p className="hero-description">
-              Lost your belongings or found something on campus?
-              Help reunite people with the things that matter.
+              A friendly campus space to reconnect people with their belongings
+              and discover what’s happening around you.
             </p>
 
             <div className="hero-buttons">
-              <a className="button primary-button" href="#items">
-                Browse Items
+              <a className="hero-action hero-action-primary" href="#items">
+                <span className="hero-action-icon" aria-hidden="true">⌕</span>
+                <span className="hero-action-copy">
+                  <strong>Lost &amp; Found</strong>
+                  <small>Find or report an item</small>
+                </span>
+                <span className="hero-action-arrow" aria-hidden="true">↗</span>
               </a>
-              <a className="button secondary-button" href="#report">
-                Report an Item
+              <a className="hero-action hero-action-secondary" href="#events">
+                <span className="hero-action-icon" aria-hidden="true">✦</span>
+                <span className="hero-action-copy">
+                  <strong>Campus Events</strong>
+                  <small>Explore what’s happening</small>
+                </span>
+                <span className="hero-action-arrow" aria-hidden="true">↗</span>
               </a>
             </div>
 
-            <div className="hero-note">
-              A little help can make someone&apos;s day.
+            <div className="hero-footnote">
+              <span className="footnote-dot" />
+              Made for a more connected campus community
             </div>
           </div>
         </section>
 
         <section className="items-section section" id="items">
           <div className="section-heading">
-            <span className="eyebrow">COMMUNITY BOARD</span>
-            <h2>Recently Reported Items</h2>
-            <p>Explore the latest lost and found reports from your campus.</p>
+            <span className="eyebrow">THE COMMUNITY BOARD</span>
+            <h2>Lost &amp; Found</h2>
+            <p>Search recent reports, or share details about something you lost or found.</p>
           </div>
 
           <div className="search-filters">
-            <input
-              type="search"
-              aria-label="Search items"
-              placeholder="Search by name, description, or location..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-
-            <select
-              aria-label="Filter by report type"
-              value={selectedType}
-              onChange={(event) => setSelectedType(event.target.value)}
-            >
+            <input type="search" aria-label="Search items" placeholder="Search name, description, or location…" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} />
+            <select aria-label="Filter by report type" value={selectedType} onChange={(event) => setSelectedType(event.target.value)}>
               <option value="ALL">All Items</option>
               <option value="LOST">Lost Items</option>
               <option value="FOUND">Found Items</option>
             </select>
-
-            <select
-              aria-label="Filter by category"
-              value={selectedCategory}
-              onChange={(event) => setSelectedCategory(event.target.value)}
-            >
+            <select aria-label="Filter by category" value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)}>
               <option value="ALL">All Categories</option>
               <option value="Electronics">Electronics</option>
               <option value="Books">Books and Notes</option>
@@ -195,266 +164,99 @@ function App() {
               <option value="Keys">Keys</option>
               <option value="Other">Other</option>
             </select>
-
-            <button
-              className="button outline-button"
-              type="button"
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedType("ALL");
-                setSelectedCategory("ALL");
-              }}
-            >
-              Clear Filters
-            </button>
+            <button className="button outline-button" type="button" onClick={() => { setSearchTerm(""); setSelectedType("ALL"); setSelectedCategory("ALL"); }}>Clear Filters</button>
           </div>
 
-          {loading && <p className="info-message">Loading items...</p>}
-
-          {!loading && fetchError && (
-            <div className="message error-message">{fetchError}</div>
-          )}
+          {loading && <p className="info-message">Loading items…</p>}
+          {!loading && fetchError && <div className="message error-message">{fetchError}</div>}
 
           {!loading && !fetchError && items.length === 0 && (
             <div className="empty-state">
-              <div className="empty-icon">⌕</div>
+              <div className="empty-icon" aria-hidden="true">⌕</div>
               <h3>No items reported yet</h3>
-              <p>
-                Be the first to report a lost or found item and help
-                your campus community.
-              </p>
-              <a className="button primary-button" href="#report">
-                Report an Item
-              </a>
+              <p>Be the first to share a report and help someone in your campus community.</p>
+              <a className="button primary-button" href="#report">Report an Item</a>
             </div>
           )}
 
           {!loading && !fetchError && items.length > 0 && (
             <>
-              <p className="results-count">
-                Showing {filteredItems.length} of {items.length} items
-              </p>
-
+              <p className="results-count">Showing {filteredItems.length} of {items.length} items</p>
               {filteredItems.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">⌕</div>
+                  <div className="empty-icon" aria-hidden="true">⌕</div>
                   <h3>No matching items found</h3>
-                  <p>Try another search term or change your filters.</p>
+                  <p>Try a different search phrase or update your filters.</p>
                 </div>
               ) : (
                 <div className="items-grid">
                   {filteredItems.map((item) => (
                     <article className="item-card" key={item.id}>
                       {item.imageUrl ? (
-                        <img
-                          className="item-image"
-                          src={item.imageUrl}
-                          alt={item.title}
-                        />
+                        <img className="item-image" src={item.imageUrl} alt={item.title} />
                       ) : (
-                        <div className="item-image-placeholder">
-                          {item.type === "FOUND" ? "✓" : "?"}
-                        </div>
+                        <div className="item-image-placeholder" aria-hidden="true">{item.type === "FOUND" ? "✓" : "?"}</div>
                       )}
-
                       <div className="item-card-content">
                         <div className="item-badges">
-                          <span
-                            className={`status-badge ${
-                              item.type?.toLowerCase() || ""
-                            }`}
-                          >
-                            {item.type || "ITEM"}
-                          </span>
-
-                          <span className="category-badge">
-                            {item.category || "Other"}
-                          </span>
+                          <span className={`status-badge ${item.type?.toLowerCase() || ""}`}>{item.type || "ITEM"}</span>
+                          <span className="category-badge">{item.category || "Other"}</span>
                         </div>
-
                         <h3>{item.title}</h3>
-
-                        <p className="item-description">
-                          {item.description || "No description provided."}
-                        </p>
-
-                        <p className="item-detail">
-                          <strong>Location:</strong>{" "}
-                          {item.location || "Not specified"}
-                        </p>
-
-                        <p className="item-detail">
-                          <strong>Status:</strong> {item.status || "OPEN"}
-                        </p>
-
-                        {item.dateReported && (
-                          <p className="item-date">
-                            Reported:{" "}
-                            {new Date(item.dateReported).toLocaleDateString()}
-                          </p>
-                        )}
+                        <p className="item-description">{item.description || "No description provided."}</p>
+                        <p className="item-detail"><strong>Location:</strong> {item.location || "Not specified"}</p>
+                        <p className="item-detail"><strong>Status:</strong> {item.status || "OPEN"}</p>
+                        {item.dateReported && <p className="item-date">Reported: {new Date(item.dateReported).toLocaleDateString()}</p>}
                       </div>
                     </article>
                   ))}
                 </div>
               )}
-
-              <button
-                className="button outline-button"
-                type="button"
-                onClick={loadItems}
-              >
-                Refresh Items
-              </button>
+              <button className="button outline-button" type="button" onClick={loadItems}>Refresh Items</button>
             </>
           )}
         </section>
 
         <section className="report-section section" id="report">
           <div className="section-heading">
-            <span className="eyebrow">MAKE A REPORT</span>
-            <h2>Lost or Found Something?</h2>
-            <p>
-              Share the details below so your campus community can help.
-            </p>
+            <span className="eyebrow">HELP SOMEONE RECONNECT</span>
+            <h2>Report an Item</h2>
+            <p>Share a few details so others can help identify a lost or found belonging.</p>
           </div>
-
           <form className="report-form" onSubmit={handleSubmit}>
             <div className="form-grid">
-              <label>
-                Item Title <span className="required">*</span>
-                <input
-                  name="title"
-                  type="text"
-                  placeholder="e.g. Black water bottle"
-                  maxLength={150}
-                  required
-                />
-              </label>
-
-              <label>
-                Report Type <span className="required">*</span>
-                <select name="type" defaultValue="LOST" required>
-                  <option value="LOST">I lost an item</option>
-                  <option value="FOUND">I found an item</option>
-                </select>
-              </label>
-
-              <label>
-                Category <span className="required">*</span>
-                <select name="category" defaultValue="" required>
-                  <option value="" disabled>
-                    Select a category
-                  </option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Books">Books and Notes</option>
-                  <option value="Bags">Bags</option>
-                  <option value="ID Cards">ID Cards</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Accessories">Accessories</option>
-                  <option value="Keys">Keys</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-
-              <label>
-                Location <span className="required">*</span>
-                <input
-                  name="location"
-                  type="text"
-                  placeholder="e.g. College library"
-                  maxLength={200}
-                  required
-                />
-              </label>
-
-              <label className="full-width">
-                Description <span className="required">*</span>
-                <textarea
-                  name="description"
-                  placeholder="Describe the item and identifying details..."
-                  rows={4}
-                  maxLength={1000}
-                  required
-                />
-              </label>
-
-              <label>
-                Your Name <span className="required">*</span>
-                <input
-                  name="contactName"
-                  type="text"
-                  placeholder="Enter your name"
-                  maxLength={100}
-                  required
-                />
-              </label>
-
-              <label>
-                Contact Email <span className="required">*</span>
-                <input
-                  name="contactEmail"
-                  type="email"
-                  placeholder="you@example.com"
-                  maxLength={254}
-                  required
-                />
-              </label>
+              <label>Item Title <span className="required">*</span><input name="title" type="text" placeholder="e.g. Black water bottle" maxLength={150} required /></label>
+              <label>Report Type <span className="required">*</span><select name="type" defaultValue="LOST" required><option value="LOST">I lost an item</option><option value="FOUND">I found an item</option></select></label>
+              <label>Category <span className="required">*</span><select name="category" defaultValue="" required><option value="" disabled>Select a category</option><option value="Electronics">Electronics</option><option value="Books">Books and Notes</option><option value="Bags">Bags</option><option value="ID Cards">ID Cards</option><option value="Clothing">Clothing</option><option value="Accessories">Accessories</option><option value="Keys">Keys</option><option value="Other">Other</option></select></label>
+              <label>Location <span className="required">*</span><input name="location" type="text" placeholder="e.g. College library" maxLength={200} required /></label>
+              <label className="full-width">Description <span className="required">*</span><textarea name="description" placeholder="Describe the item and identifying details…" rows={4} maxLength={1000} required /></label>
+              <label>Your Name <span className="required">*</span><input name="contactName" type="text" placeholder="Enter your name" maxLength={100} required /></label>
+              <label>Contact Email <span className="required">*</span><input name="contactEmail" type="email" placeholder="you@example.com" maxLength={254} required /></label>
             </div>
-
-            {message && (
-              <div className="message success-message" role="status">
-                {message}
-              </div>
-            )}
-
-            {formError && (
-              <div className="message error-message" role="alert">
-                {formError}
-              </div>
-            )}
-
-            <button
-              className="button primary-button submit-button"
-              type="submit"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Report"}
-            </button>
-
-            <p className="privacy-note">
-              Use test contact details while developing. This initial
-              version does not yet include authentication or private
-              contact-information controls.
-            </p>
+            {message && <div className="message success-message" role="status">{message}</div>}
+            {formError && <div className="message error-message" role="alert">{formError}</div>}
+            <button className="button primary-button submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting…" : "Submit Report"}</button>
+            <p className="privacy-note">Use test contact details while developing. This version does not yet include authentication or private contact-information controls.</p>
           </form>
         </section>
 
         <section className="events-section section" id="events">
           <div className="section-heading">
-            <span className="eyebrow">CAMPUS LIFE</span>
+            <span className="eyebrow">MEET, LEARN &amp; CELEBRATE</span>
             <h2>Campus Events</h2>
-            <p>
-              Discover campus activities and register using the event links.
-            </p>
+            <p>Stay curious, meet your community, and keep an eye on upcoming campus activities.</p>
           </div>
-
           <div className="event-placeholder">
-            <div className="event-icon">✦</div>
-            <h3>Something exciting is coming</h3>
-            <p>
-              Campus event details and registration links will appear here.
-            </p>
+            <div className="event-icon" aria-hidden="true">✦</div>
+            <h3>Your next campus memory starts here</h3>
+            <p>Event details and registration links will be shared here soon.</p>
           </div>
         </section>
       </main>
 
       <footer className="footer">
-        <a className="brand footer-brand" href="#home">
-          <span className="brand-icon">L</span>
-          Lost &amp; Found
-        </a>
-        <p>Helping our campus community reconnect.</p>
+        <a className="brand footer-brand" href="#home"><span className="brand-icon">L</span><span>Campus Connect</span></a>
+        <p>Small connections make campus life better.</p>
       </footer>
     </div>
   );
