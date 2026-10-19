@@ -90,7 +90,7 @@ function App() {
   return (
     <div className="app">
       <header className="navbar">
-        <a className="brand" href="#home" aria-label="Lost and Found home">
+        <a className="brand" href="/" aria-label="Lost and Found home">
           <span className="brand-icon">L</span>
           <span>Campus Connect</span>
         </a>
@@ -260,7 +260,7 @@ function App() {
       </main>
 
       <footer className="footer">
-        <a className="brand footer-brand" href="#home"><span className="brand-icon">L</span><span>Campus Connect</span></a>
+        <a className="brand footer-brand" href="/"><span className="brand-icon">L</span><span>Campus Connect</span></a>
         <p>Small connections make campus life better.</p>
       </footer>
     </div>
