@@ -28,6 +28,7 @@ public class Item {
 
     private LocalDateTime dateReported = LocalDateTime.now();
 
+    @Column(length = 1200000)
     private String imageUrl;
 
     private String contactName;
