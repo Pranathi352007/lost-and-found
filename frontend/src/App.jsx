@@ -42,12 +42,18 @@ function App() {
   const [selectedType, setSelectedType] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [filtersApplied, setFiltersApplied] = useState(false);
+  const [itemLocationFilter, setItemLocationFilter] = useState("");
+  const [itemDateFrom, setItemDateFrom] = useState("");
+  const [itemDateTo, setItemDateTo] = useState("");
+  const [revealedContacts, setRevealedContacts] = useState({});
 
   const [campusEvents, setCampusEvents] = useState([]);
   const [eventSearch, setEventSearch] = useState("");
   const [eventClubFilter, setEventClubFilter] = useState("ALL");
   const [eventDateFilter, setEventDateFilter] = useState("UPCOMING");
   const [eventVenueFilter, setEventVenueFilter] = useState("");
+  const [eventCategoryFilter, setEventCategoryFilter] = useState("ALL");
+  const [registrationMessage, setRegistrationMessage] = useState("");
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState("");
   const [eventMode, setEventMode] = useState("choose");
@@ -89,7 +95,8 @@ function App() {
     const eventTime = campusEvent.eventDateTime ? new Date(campusEvent.eventDateTime).getTime() : null;
     const matchesDate = eventDateFilter === "ALL" || (eventTime !== null && (eventDateFilter === "UPCOMING" ? eventTime >= Date.now() : eventTime < Date.now()));
     const matchesVenue = !eventVenueFilter.trim() || String(campusEvent.venue || "").toLowerCase().includes(eventVenueFilter.trim().toLowerCase());
-    return matchesSearch && matchesClub && matchesDate && matchesVenue;
+    const matchesCategory = eventCategoryFilter === "ALL" || campusEvent.category === eventCategoryFilter;
+    return matchesSearch && matchesClub && matchesDate && matchesVenue && matchesCategory;
   });
 
   async function handleClubSignup(event) {
@@ -231,9 +238,13 @@ function App() {
         );
       const matchesType = selectedType === "ALL" || item.type === selectedType;
       const matchesCategory = selectedCategory === "ALL" || item.category === selectedCategory;
-      return matchesSearch && matchesType && matchesCategory;
+      const matchesLocation = !itemLocationFilter.trim() || String(item.location || "").toLowerCase().includes(itemLocationFilter.trim().toLowerCase());
+      const reported = item.dateReported ? new Date(item.dateReported) : null;
+      const matchesFrom = !itemDateFrom || (reported && reported >= new Date(itemDateFrom));
+      const matchesTo = !itemDateTo || (reported && reported <= new Date(itemDateTo + "T23:59:59"));
+      return matchesSearch && matchesType && matchesCategory && matchesLocation && matchesFrom && matchesTo;
     });
-  }, [items, searchTerm, selectedType, selectedCategory]);
+  }, [items, searchTerm, selectedType, selectedCategory, itemLocationFilter, itemDateFrom, itemDateTo]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -379,8 +390,11 @@ function App() {
               <option value="Keys">Keys</option>
               <option value="Other">Other</option>
             </select>
+            <input type="search" aria-label="Filter by location" placeholder="Filter by location…" value={itemLocationFilter} onChange={(event) => setItemLocationFilter(event.target.value)} />
+            <label className="filter-date-label">Reported from<input type="date" value={itemDateFrom} onChange={(event) => setItemDateFrom(event.target.value)} /></label>
+            <label className="filter-date-label">Reported to<input type="date" value={itemDateTo} onChange={(event) => setItemDateTo(event.target.value)} /></label>
             <button className="button primary-button" type="button" onClick={() => setFiltersApplied(true)}>Apply Filters</button>
-            <button className="button outline-button" type="button" onClick={() => { setSearchTerm(""); setSelectedType("ALL"); setSelectedCategory("ALL"); setFiltersApplied(false); }}>Clear Filters</button>
+            <button className="button outline-button" type="button" onClick={() => { setSearchTerm(""); setSelectedType("ALL"); setSelectedCategory("ALL"); setItemLocationFilter(""); setItemDateFrom(""); setItemDateTo(""); setFiltersApplied(false); }}>Clear Filters</button>
           </div>
 
           {loading && <p className="info-message">Loading items…</p>}
@@ -430,6 +444,8 @@ function App() {
                         <p className="item-description">{item.description || "No description provided."}</p>
                         <p className="item-detail item-location"><MapPin size={15} /><strong>Location:</strong> {item.location || "Not specified"}</p>
                         <p className="item-detail"><strong>Status:</strong> {item.status || "OPEN"}</p>
+                        {item.status !== "RETURNED" && <button className="button outline-button item-return-button" type="button" onClick={async () => { if (!window.confirm("Mark this item as returned?")) return; try { const response = await fetch(`${API_URL}/${item.id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "RETURNED" }) }); if (!response.ok) throw new Error(); const updated = await response.json(); setItems((previous) => previous.map((entry) => entry.id === item.id ? updated : entry)); } catch { setFetchError("Could not update item status. Check the backend and try again."); } }}><CheckCircle2 size={15} /> Mark as Returned</button>}
+                        {(item.contactName || item.contactPhone) && <div className="item-contact"><button type="button" className="text-button" onClick={() => setRevealedContacts((previous) => ({ ...previous, [item.id]: !previous[item.id] }))}>{revealedContacts[item.id] ? "Hide contact details" : "Show contact details"}</button>{revealedContacts[item.id] && <p className="item-detail">{item.contactName && <>Name: {item.contactName}<br /></>}{item.contactPhone && <>Phone: {item.contactPhone}</>}</p>}</div> }
                         {item.dateReported && <p className="item-date">Reported: {new Date(item.dateReported).toLocaleDateString()}</p>}
                       </div>
                     </article>
@@ -453,6 +469,7 @@ function App() {
               <label>Report Type <span className="required">*</span><select name="type" defaultValue="LOST" required><option value="LOST">I lost an item</option><option value="FOUND">I found an item</option></select></label>
               <label>Category <span className="required">*</span><select name="category" defaultValue="" required><option value="" disabled>Select a category</option><option value="Electronics">Electronics</option><option value="Books">Books and Notes</option><option value="Bags">Bags</option><option value="ID Cards">ID Cards</option><option value="Clothing">Clothing</option><option value="Accessories">Accessories</option><option value="Keys">Keys</option><option value="Other">Other</option></select></label>
               <label>Location <span className="required">*</span><input name="location" type="text" placeholder="e.g. College library" maxLength={200} required /></label>
+              <label className="full-width">Item Photo (optional)<input name="photoFile" type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 900000) { setFormError("Please choose an image smaller than 900 KB."); event.target.value = ""; return; } const reader = new FileReader(); reader.onload = () => { const hidden = event.target.form?.elements.namedItem("imageUrl"); if (hidden) hidden.value = String(reader.result || ""); }; reader.readAsDataURL(file); }} /><input type="hidden" name="imageUrl" /></label>
               <label className="full-width">Description <span className="required">*</span><textarea name="description" placeholder="Describe the item and identifying details…" rows={4} maxLength={1000} required /></label>
               <label>Your Name <span className="required">*</span><input name="contactName" type="text" placeholder="Enter your name" maxLength={100} required /></label>
               <label>Phone Number <span className="required">*</span><input name="contactPhone" type="tel" placeholder="Enter your phone number" maxLength={20} pattern="[0-9+()\-\s]{7,20}" title="Enter a valid phone number" required /></label>
@@ -504,6 +521,7 @@ function App() {
               <option value="ALL">All Dates</option>
             </select>
             <input type="search" aria-label="Filter events by venue" placeholder="Filter by venue…" value={eventVenueFilter} onChange={(event) => setEventVenueFilter(event.target.value)} />
+            <select aria-label="Filter events by category" value={eventCategoryFilter} onChange={(event) => setEventCategoryFilter(event.target.value)}><option value="ALL">All Categories</option><option value="WORKSHOP">Workshop</option><option value="CULTURAL">Cultural</option><option value="TECHNICAL">Technical</option><option value="SPORTS">Sports</option><option value="OTHER">Other</option></select>
             <button className="button outline-button" type="button" onClick={() => { setEventSearch(""); setEventClubFilter("ALL"); setEventDateFilter("UPCOMING"); setEventVenueFilter(""); setEventCategoryFilter("ALL"); }}>Clear Filters</button>
           </div>
           {eventsLoading && <p className="info-message">Loading events…</p>}
@@ -531,12 +549,16 @@ function App() {
                   <span className="icon-tile icon-pink"><CalendarDays size={23} /></span>
                   <span className="event-club-pill">{campusEvent.clubName || "Campus Club"}</span>
                 </div>
+                {campusEvent.posterUrl && <img className="campus-event-poster" src={campusEvent.posterUrl} alt={`${campusEvent.title} poster`} />}
                 <h3>{campusEvent.title}</h3>
                 <p>{campusEvent.description || "More details will be announced soon."}</p>
                 {campusEvent.eventDateTime && <p className="event-meta"><CalendarDays size={16} /> {new Date(campusEvent.eventDateTime).toLocaleString()}</p>}
                 {campusEvent.venue && <p className="event-meta"><MapPin size={16} /> {campusEvent.venue}</p>}
                 <p className="event-meta"><UserRound size={16} /> Posted by {campusEvent.createdBy || campusEvent.clubName}</p>
                 {campusEvent.registrationUrl && <a className="event-registration-link" href={campusEvent.registrationUrl} target="_blank" rel="noreferrer">Registration link <ExternalLink size={15} /></a>}
+                <button className="button primary-button event-register-button" type="button" onClick={async () => { const studentName = window.prompt("Enter your full name to register:"); if (!studentName?.trim()) return; const registrationNumber = window.prompt("Enter your student registration number:"); if (!registrationNumber?.trim()) return; try { const response = await fetch(`http://localhost:8080/api/events/${campusEvent.id}/registrations`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studentName: studentName.trim(), registrationNumber: registrationNumber.trim() }) }); const result = await response.json(); if (!response.ok) throw new Error(result.message || "Registration failed."); setRegistrationMessage(`Registered successfully for ${campusEvent.title}.`); } catch (error) { setRegistrationMessage(error.message || "Could not register."); } }}>Register for Event</button>
+                {registrationMessage && <p className="message success-message">{registrationMessage}</p>}
+                {clubAccount && String(clubAccount.clubName || "").toLowerCase() === String(campusEvent.clubName || "").toLowerCase() && <div className="event-owner-actions"><button className="button outline-button" type="button" onClick={async () => { const title = window.prompt("Event title:", campusEvent.title); if (title === null || !title.trim()) return; const description = window.prompt("Description:", campusEvent.description || "") ?? campusEvent.description ?? ""; const venue = window.prompt("Venue:", campusEvent.venue || "") ?? campusEvent.venue ?? ""; const date = window.prompt("Date and time (YYYY-MM-DDTHH:mm):", campusEvent.eventDateTime ? String(campusEvent.eventDateTime).slice(0,16) : "") ; if (date === null) return; const registrationUrl = window.prompt("Registration URL:", campusEvent.registrationUrl || "") ?? campusEvent.registrationUrl ?? ""; try { const response = await fetch(`http://localhost:8080/api/events/${campusEvent.id}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: "Bearer " + clubAccount.token }, body: JSON.stringify({ title, description, venue, eventDateTime: date, registrationUrl, category: campusEvent.category || "OTHER", posterUrl: campusEvent.posterUrl || "" }) }); const result = await response.json(); if (!response.ok) throw new Error(result.message || "Could not update event."); setCampusEvents((previous) => previous.map((entry) => entry.id === campusEvent.id ? result : entry)); } catch (error) { setEventsError(error.message || "Could not update event."); } }}>Edit Event</button><button className="button danger-button" type="button" onClick={async () => { if (!window.confirm("Cancel and delete this event?")) return; try { const response = await fetch(`http://localhost:8080/api/events/${campusEvent.id}`, { method: "DELETE", headers: { Authorization: "Bearer " + clubAccount.token } }); if (!response.ok) throw new Error(); setCampusEvents((previous) => previous.filter((entry) => entry.id !== campusEvent.id)); } catch { setEventsError("Could not cancel event. Please log in as the event-owning club."); } }}>Cancel Event</button></div>}
               </article>
             ))}
           </div>
