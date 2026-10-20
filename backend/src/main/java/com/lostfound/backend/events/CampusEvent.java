@@ -16,6 +16,9 @@ public class CampusEvent {
     private String venue;
     private LocalDateTime eventDateTime;
     private String registrationUrl;
+    private String category = "OTHER";
+    @Column(length = 1200000)
+    private String posterUrl;
     private String clubName;
     private String createdBy;
 
@@ -29,6 +32,10 @@ public class CampusEvent {
     public void setVenue(String value) { venue = value; }
     public LocalDateTime getEventDateTime() { return eventDateTime; }
     public void setEventDateTime(LocalDateTime value) { eventDateTime = value; }
+    public String getCategory() { return category; }
+    public void setCategory(String value) { category = value; }
+    public String getPosterUrl() { return posterUrl; }
+    public void setPosterUrl(String value) { posterUrl = value; }
     public String getRegistrationUrl() { return registrationUrl; }
     public void setRegistrationUrl(String value) { registrationUrl = value; }
     public String getClubName() { return clubName; }
