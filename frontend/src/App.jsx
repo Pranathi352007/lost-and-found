@@ -153,8 +153,8 @@ function App() {
     const form = new FormData(formElement);
     const payload = Object.fromEntries(form.entries());
     try {
-      const response = await fetch("http://localhost:8080/api/events", {
-        method: "POST",
+      const response = await fetch(editingEventId ? `http://localhost:8080/api/events/${editingEventId}` : "http://localhost:8080/api/events", {
+        method: editingEventId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + clubAccount.token,
@@ -163,7 +163,8 @@ function App() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Could not add event.");
-      setEventMessage("Event added successfully!");
+      setEventMessage(editingEventId ? "Event updated successfully!" : "Event added successfully!");
+      setEditingEventId(null);
       formElement.reset();
     } catch (error) {
       setEventError(error.message || "Could not add event. Please try again.");
@@ -503,7 +504,7 @@ function App() {
               <option value="ALL">All Dates</option>
             </select>
             <input type="search" aria-label="Filter events by venue" placeholder="Filter by venue…" value={eventVenueFilter} onChange={(event) => setEventVenueFilter(event.target.value)} />
-            <button className="button outline-button" type="button" onClick={() => { setEventSearch(""); setEventClubFilter("ALL"); setEventDateFilter("UPCOMING"); setEventVenueFilter(""); }}>Clear Filters</button>
+            <button className="button outline-button" type="button" onClick={() => { setEventSearch(""); setEventClubFilter("ALL"); setEventDateFilter("UPCOMING"); setEventVenueFilter(""); setEventCategoryFilter("ALL"); }}>Clear Filters</button>
           </div>
           {eventsLoading && <p className="info-message">Loading events…</p>}
           {eventsError && <div className="message error-message">{eventsError}</div>}
@@ -600,8 +601,10 @@ function App() {
                 <label>Event Title <span className="required">*</span><input name="title" maxLength={150} required /></label>
                 <label>Description<textarea name="description" rows={4} maxLength={2000} placeholder="Tell students what the event is about." /></label>
                 <div className="form-grid">
+                  <label>Category<select name="category" defaultValue="OTHER" required><option value="WORKSHOP">Workshop</option><option value="CULTURAL">Cultural</option><option value="TECHNICAL">Technical</option><option value="SPORTS">Sports</option><option value="OTHER">Other</option></select></label>
                   <label>Date and Time<input name="eventDateTime" type="datetime-local" /></label>
                   <label>Venue<input name="venue" maxLength={200} placeholder="e.g. Seminar Hall" /></label>
+                  <label className="full-width">Event Poster (optional)<input name="posterFile" type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 900000) { setEventError("Please choose a poster smaller than 900 KB."); event.target.value = ""; return; } const reader = new FileReader(); reader.onload = () => { const hidden = event.target.form?.elements.namedItem("posterUrl"); if (hidden) hidden.value = String(reader.result || ""); }; reader.readAsDataURL(file); }} /><input type="hidden" name="posterUrl" /></label>
                   <label className="full-width">Registration URL<input name="registrationUrl" type="url" placeholder="https://forms.gle/..." /></label>
                 </div>
                 <button className="button primary-button submit-button" disabled={eventBusy}>{eventBusy ? "Publishing…" : "Publish Event"}</button>
