@@ -44,6 +44,10 @@ function App() {
   const [filtersApplied, setFiltersApplied] = useState(false);
 
   const [campusEvents, setCampusEvents] = useState([]);
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventClubFilter, setEventClubFilter] = useState("ALL");
+  const [eventDateFilter, setEventDateFilter] = useState("UPCOMING");
+  const [eventVenueFilter, setEventVenueFilter] = useState("");
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState("");
   const [eventMode, setEventMode] = useState("choose");
@@ -75,6 +79,18 @@ function App() {
   useEffect(() => {
     if (isFindEventsPage) loadEvents();
   }, [isFindEventsPage]);
+
+  const eventClubs = [...new Set(campusEvents.map((event) => event.clubName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const filteredEvents = campusEvents.filter((campusEvent) => {
+    const query = eventSearch.trim().toLowerCase();
+    const matchesSearch = !query || [campusEvent.title, campusEvent.description, campusEvent.clubName, campusEvent.venue, campusEvent.createdBy]
+      .some((value) => String(value || "").toLowerCase().includes(query));
+    const matchesClub = eventClubFilter === "ALL" || campusEvent.clubName === eventClubFilter;
+    const eventTime = campusEvent.eventDateTime ? new Date(campusEvent.eventDateTime).getTime() : null;
+    const matchesDate = eventDateFilter === "ALL" || (eventTime !== null && (eventDateFilter === "UPCOMING" ? eventTime >= Date.now() : eventTime < Date.now()));
+    const matchesVenue = !eventVenueFilter.trim() || String(campusEvent.venue || "").toLowerCase().includes(eventVenueFilter.trim().toLowerCase());
+    return matchesSearch && matchesClub && matchesDate && matchesVenue;
+  });
 
   async function handleClubSignup(event) {
     event.preventDefault();
@@ -473,7 +489,21 @@ function App() {
           <div className="section-heading">
             <span className="eyebrow">CAMPUS CALENDAR</span>
             <h2>Find Events</h2>
-            <p>Explore activities shared by campus clubs.</p>
+            <p>Search and filter campus events by keyword, club, date, or venue.</p>
+          </div>
+          <div className="search-filters event-search-filters">
+            <input type="search" aria-label="Search events" placeholder="Search event name or description…" value={eventSearch} onChange={(event) => setEventSearch(event.target.value)} />
+            <select aria-label="Filter events by club" value={eventClubFilter} onChange={(event) => setEventClubFilter(event.target.value)}>
+              <option value="ALL">All Clubs</option>
+              {eventClubs.map((club) => <option key={club} value={club}>{club}</option>)}
+            </select>
+            <select aria-label="Filter events by date" value={eventDateFilter} onChange={(event) => setEventDateFilter(event.target.value)}>
+              <option value="UPCOMING">Upcoming Events</option>
+              <option value="PAST">Past Events</option>
+              <option value="ALL">All Dates</option>
+            </select>
+            <input type="search" aria-label="Filter events by venue" placeholder="Filter by venue…" value={eventVenueFilter} onChange={(event) => setEventVenueFilter(event.target.value)} />
+            <button className="button outline-button" type="button" onClick={() => { setEventSearch(""); setEventClubFilter("ALL"); setEventDateFilter("UPCOMING"); setEventVenueFilter(""); }}>Clear Filters</button>
           </div>
           {eventsLoading && <p className="info-message">Loading events…</p>}
           {eventsError && <div className="message error-message">{eventsError}</div>}
@@ -481,12 +511,20 @@ function App() {
             <div className="event-placeholder">
               <div className="event-icon"><CalendarDays size={30} /></div>
               <h3>No events have been added yet</h3>
-              <p>Check back later, or sign in as a club coordinator to publish an event.</p>
-              <a className="button primary-button" href="/add-events">Add an Event</a>
+              <p>There are no campus events to show right now. Please check again later.</p>
             </div>
           )}
+          {!eventsLoading && !eventsError && campusEvents.length > 0 && filteredEvents.length === 0 && (
+            <div className="event-placeholder">
+              <div className="event-icon"><Search size={30} /></div>
+              <h3>No matching events found</h3>
+              <p>Try changing your search words or filters.</p>
+              <button className="button outline-button" type="button" onClick={() => { setEventSearch(""); setEventClubFilter("ALL"); setEventDateFilter("ALL"); setEventVenueFilter(""); }}>Show All Events</button>
+            </div>
+          )}
+          <p className="results-count">{!eventsLoading && !eventsError && campusEvents.length > 0 ? `Showing ${filteredEvents.length} of ${campusEvents.length} events` : ""}</p>
           <div className="event-list-grid">
-            {campusEvents.map((campusEvent) => (
+            {filteredEvents.map((campusEvent) => (
               <article className="campus-event-card" key={campusEvent.id}>
                 <div className="campus-event-card-top">
                   <span className="icon-tile icon-pink"><CalendarDays size={23} /></span>
