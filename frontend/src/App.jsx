@@ -17,6 +17,7 @@ import {
   LogOut,
   Trash2,
   ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 import "./App.css";
 
@@ -261,6 +262,7 @@ function App() {
       location: String(formData.get("location") || "").trim(),
       contactName: String(formData.get("contactName") || "").trim(),
       contactPhone: String(formData.get("contactPhone") || "").trim(),
+      imageUrl: String(formData.get("imageUrl") || ""),
       status: "OPEN",
     };
 
